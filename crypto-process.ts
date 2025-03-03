@@ -18,10 +18,10 @@ function uint8ArrayToString(uint8Array: Uint8Array): string {
     return new TextDecoder().decode(uint8Array);
 }
 
-// Derive key from a constant string (passphrase)
-async function deriveKey(password: string): Promise<CryptoKey> {
+// Derive key from a constant string (passphrase) - Synchronous
+function deriveKey(password: string): CryptoKey {
     const salt = stringToUint8Array(getSaltKey()); // Use a fixed salt for consistency
-    const keyMaterial = await crypto.subtle.importKey(
+    const keyMaterial = crypto.subtle.importKey(
         "raw",
         stringToUint8Array(password),
         { name: "PBKDF2" },
@@ -43,13 +43,13 @@ async function deriveKey(password: string): Promise<CryptoKey> {
     );
 }
 
-// Encrypt data
-export async function encryptData(plainText: string): Promise<{ iv: number[]; encrypted: number[] }> {
-    const key = await deriveKey(getPassword());
+// Encrypt data (Synchronous)
+export function encryptDataSync(plainText: string): { iv: number[]; encrypted: number[] } {
+    const key = deriveKey(getPassword());
     const iv = crypto.getRandomValues(new Uint8Array(12)); // Generate a random IV
     const encodedText = stringToUint8Array(plainText);
 
-    const encryptedBuffer = await crypto.subtle.encrypt(
+    const encryptedBuffer = crypto.subtle.encrypt(
         { name: "AES-GCM", iv: iv },
         key,
         encodedText
@@ -61,34 +61,39 @@ export async function encryptData(plainText: string): Promise<{ iv: number[]; en
     };
 }
 
-// Decrypt data
-export async function decryptData(encryptedData: { iv: number[]; encrypted: number[] }): Promise<string> {
-    const key = await deriveKey(getPassword());
-    const iv = new Uint8Array(encryptedData.iv);
-    const encryptedArray = new Uint8Array(encryptedData.encrypted);
-
-    const decryptedBuffer = await crypto.subtle.decrypt(
-        { name: "AES-GCM", iv: iv },
-        key,
-        encryptedArray
-    );
-
-    return uint8ArrayToString(new Uint8Array(decryptedBuffer));
+// Decrypt data (Synchronous)
+export function decryptDataSync(encryptedData: { iv: number[]; encrypted: number[] }): string {
+    try {
+        const key = deriveKey(getPassword());
+        const iv = new Uint8Array(encryptedData.iv);
+        const encryptedArray = new Uint8Array(encryptedData.encrypted);
+    
+        const decryptedBuffer = crypto.subtle.decrypt(
+            { name: "AES-GCM", iv: iv },
+            key,
+            encryptedArray
+        );
+    
+        return uint8ArrayToString(new Uint8Array(decryptedBuffer));
+    }
+    catch{
+        return '';
+    }
 }
 
-// SessionStorage Helper Class
+// SessionStorage Helper Class (Synchronous)
 export class SessionStorageHelper {
-    static async setItem(key: string, value: any): Promise<void> {
-        const encryptedData = await encryptData(JSON.stringify(value));
+    static setItem(key: string, value: any): void {
+        const encryptedData = encryptDataSync(JSON.stringify(value));
         sessionStorage.setItem(key, JSON.stringify(encryptedData));
     }
 
-    static async getItem(key: string): Promise<any> {
+    static getItem(key: string): any {
         const encryptedData = sessionStorage.getItem(key);
         if (!encryptedData) return null;
 
         try {
-            return JSON.parse(await decryptData(JSON.parse(encryptedData)));
+            return JSON.parse(decryptDataSync(JSON.parse(encryptedData)));
         } catch (error) {
             console.error("Decryption failed:", error);
             return null;
