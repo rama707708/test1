@@ -1,7 +1,18 @@
-
 // Secret key for XOR encryption
 function getSecret(): string {
     return '3c028d93-2132-4192-81c4-536e0d714def';
+}
+
+// Convert string to hexadecimal representation
+function stringToHex(str: string): string {
+    return Array.from(str)
+        .map(char => char.charCodeAt(0).toString(16).padStart(2, "0"))
+        .join("");
+}
+
+// Convert hexadecimal representation back to string
+function hexToString(hex: string): string {
+    return hex.match(/.{1,2}/g)?.map(byte => String.fromCharCode(parseInt(byte, 16))).join("") || "";
 }
 
 // XOR Encryption & Decryption
@@ -17,14 +28,14 @@ function xorEncryptDecrypt(data: string, key: string): string {
     return output;
 }
 
-// Encrypt function (Base64 encoding)
+// Encrypt function (Hex encoding)
 function encryptDataSync(plainText: string): string {
-    return btoa(xorEncryptDecrypt(plainText, getSecret())); // Convert to Base64
+    return stringToHex(xorEncryptDecrypt(plainText, getSecret()));
 }
 
-// Decrypt function (Base64 decoding)
+// Decrypt function (Hex decoding)
 function decryptDataSync(encryptedText: string): string {
-    return xorEncryptDecrypt(atob(encryptedText), getSecret()); // Convert from Base64
+    return xorEncryptDecrypt(hexToString(encryptedText), getSecret());
 }
 
 // 🚀 Synchronous SessionStorage Helper Class
