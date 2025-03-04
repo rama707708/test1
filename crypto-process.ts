@@ -28,20 +28,35 @@ function xorEncryptDecrypt(data: string, key: string): string {
     return output;
 }
 
+// Escape JSON string to prevent control character issues
+function escapeJsonString(str: string): string {
+    return str.replace(/[\u007F-\uFFFF]/g, (char) =>
+        `\\u${char.charCodeAt(0).toString(16).padStart(4, "0")}`
+    );
+}
+
+// Unescape JSON string before parsing
+function unescapeJsonString(str: string): string {
+    return str.replace(/\\u([\dA-Fa-f]{4})/g, (_, hex) =>
+        String.fromCharCode(parseInt(hex, 16))
+    );
+}
+
 // Encrypt function (Hex encoding)
 function encryptDataSync(plainText: string): string {
-    return stringToHex(xorEncryptDecrypt(plainText, getSecret()));
+    return stringToHex(xorEncryptDecrypt(escapeJsonString(plainText), getSecret()));
 }
 
 // Decrypt function (Hex decoding)
 function decryptDataSync(encryptedText: string): string {
-    return xorEncryptDecrypt(hexToString(encryptedText), getSecret());
+    return unescapeJsonString(xorEncryptDecrypt(hexToString(encryptedText), getSecret()));
 }
 
 // 🚀 Synchronous SessionStorage Helper Class
 export class SessionStorageHelper {
     static setItem(key: string, value: any): void {
-        const encryptedData = encryptDataSync(JSON.stringify(value));
+        const jsonData = JSON.stringify(value);
+        const encryptedData = encryptDataSync(jsonData);
         sessionStorage.setItem(key, encryptedData);
     }
 
@@ -64,13 +79,4 @@ export class SessionStorageHelper {
     static clear(): void {
         sessionStorage.clear();
     }
-
-    static isValidJson(str: string): boolean {
-    try {
-        JSON.parse(str);
-        return true;
-    } catch (e) {
-        return false;
-    }
-}
 }
