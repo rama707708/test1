@@ -64,4 +64,13 @@ export class SessionStorageHelper {
     static clear(): void {
         sessionStorage.clear();
     }
+
+    static isValidJson(str: string): boolean {
+    try {
+        JSON.parse(str);
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
 }
