@@ -88,3 +88,30 @@ try {
     console.error('Invalid JWT token:', error);
     return null;
   }
+
+
+async getUser(): Promise<UserData> {
+  return new Promise((resolve, reject) => {
+    this.userInfo$.pipe(
+      switchMap((result) => 
+        result ? of(result) : this.http.get<{ user: UserData }>(this.apiUrl).pipe(
+          tap((response) => {
+            if (response?.user) {
+              this.userInfoSubject.next(response.user);
+            }
+          }),
+          map(response => response.user),
+          catchError((error) => {
+            console.error('Error fetching user data:', error);
+            reject(new Error('Failed to fetch user data'));
+            return of(null); // Prevents breaking the Observable chain
+          })
+        )
+      )
+    ).subscribe({
+      next: (user) => resolve(user),
+      error: (err) => reject(err)
+    });
+  });
+}
+
