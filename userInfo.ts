@@ -115,3 +115,42 @@ async getUser(): Promise<UserData> {
   });
 }
 
+
+
+
+// new code
+
+private userInfoSubject = new BehaviorSubject<UserModel | null>(null);
+public userInfo$ = this.userInfoSubject.asObservable();
+
+async getUser(): Promise<UserModel> {
+  return new Promise((resolve, reject) => {
+    this.userInfo$.pipe(
+      take(1), // Get the latest value once
+      switchMap((result) => {
+        if (result) {
+          return of(result); // Return cached user data
+        } else {
+          return this.http.get<{ user: UserModel }>(this.apiUrl).pipe(
+            map(response => {
+              if (response?.user) {
+                this.userInfoSubject.next(response.user); // Store user data
+                return response.user; // Return only `user` object
+              } else {
+                throw new Error("Invalid user data received");
+              }
+            })
+          );
+        }
+      }),
+      catchError((error) => {
+        console.error("Error fetching user data:", error);
+        return throwError(() => new Error("Failed to fetch user data"));
+      })
+    ).subscribe({
+      next: resolve, // Resolve with user data
+      error: reject  // Reject promise on error
+    });
+  });
+}
+
