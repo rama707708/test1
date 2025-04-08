@@ -1,91 +1,67 @@
-import { Injectable, Renderer2, RendererFactory2, ElementRef } from '@angular/core';
-import { Meta } from '@angular/platform-browser';
+--------------------
+shared_styles_host.ts
+---------------------
 
-@Injectable({ providedIn: 'root' })
-export class CSPManagerService {
-  private _nonce: string = '';
-  private _renderer: Renderer2;
-  private _hostNodes: Map<Element, Element[]> = new Map();
+  import { Injectable, Inject } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { ɵDomSharedStylesHost as DomSharedStylesHost } from '@angular/platform-browser';
 
-  constructor(private rendererFactory: RendererFactory2, private metaService: Meta) {
-    this._renderer = this.rendererFactory.createRenderer(null, null);
+function getDOM(): any {
+  return typeof document !== 'undefined' ? document : null;
+}
+
+function removeStyle(styleNode: Node): void {
+  getDOM()?.removeChild?.(styleNode?.parentNode, styleNode);
+}
+
+@Injectable()
+export class CustomDomSharedStylesHost extends DomSharedStylesHost {
+  private _hostNodes = new Map<Node, Node[]>();
+
+  constructor(@Inject(DOCUMENT) document: any) {
+    super(document);
   }
 
-  private _setCSPNonce(): void {
-    const metaTag = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
-    const nonceString = metaTag?.getAttribute('content') || '';
-    this._nonce = (Math.floor(Math.random() * 10000) + 1).toString();
-    if (metaTag) {
-      let contentVal = `default-src 'self';script-src 'self' 'nonce-${this._nonce}';style-src 'self' 'nonce-${this._nonce}';img-src 'self' data:;connect-src 'self' ${environment.baseurl}`;
-      if (environment.ssoURLs && Array.isArray(environment.ssoURLs)) {
-        const ssoURLs = environment.ssoURLs.join(' ');
-        contentVal = contentVal.replace(/connect-src[^;]*/, match => {
-          return match.trim().replace(/;$/, '') + ' ' + ssoURLs.trim();
-        });
-      }
-      this.metaService.updateTag({ httpEquiv: 'Content-Security-Policy', content: contentVal });
-    }
-  }
-
-  private _removeCSPNonceHeader(): void {
-    const meta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
-    meta?.remove();
-  }
-
-  addHost(hostNode: Element): void {
-    const styleNodes: Element[] = [];
+  addHost(hostNode: Node): void {
+    const styleNodes: Node[] = [];
     this._hostNodes.set(hostNode, styleNodes);
   }
 
-  removeHost(hostNode: Element): void {
+  removeHost(hostNode: Node): void {
     const styleNodes = this._hostNodes.get(hostNode);
     if (styleNodes) {
-      styleNodes.forEach(this.removeStyle);
+      styleNodes.forEach(removeStyle);
     }
     this._hostNodes.delete(hostNode);
   }
 
-  onStyleAdded(style: string): void {
+  override onStyleAdded(style: string): void {
     this._hostNodes.forEach((styleNodes, hostNode) => {
       this._addStylesToHost(style, hostNode, styleNodes);
     });
   }
 
-  ngOnDestroy(): void {
-    this._hostNodes.forEach((styleNodes) => styleNodes.forEach(this.removeStyle));
-  }
-
-  private removeStyle(styleNode: Element): void {
-    styleNode?.parentNode?.removeChild(styleNode);
-  }
-
-  private _addStylesToHost(style: string, hostNode: Element, styleNodes: Element[]): void {
-    const styleEl = this._renderer.createElement('style');
-    this._renderer.setProperty(styleEl, 'textContent', style);
-    if (this._nonce) {
-      this._renderer.setAttribute(styleEl, 'nonce', this._nonce);
-    }
-    this._renderer.appendChild(hostNode, styleEl);
-    styleNodes.push(styleEl);
+  override ngOnDestroy(): void {
+    this._hostNodes.forEach((styleNodes) => styleNodes.forEach(removeStyle));
   }
 }
 
 
---------------------------------END----------------------------------
+---------------------------end--------------------------
+
+--------------inline-styles-csp.module.ts--------------------------
 
 
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CSPManagerService } from './csp-manager.service';
-import { CustomDomSharedStylesHost } from './shared-styles-host';
+import { CustomDomSharedStylesHost } from './shared_styles_host';
 import { ɵSharedStylesHost as SharedStylesHost } from '@angular/platform-browser';
 
 @NgModule({
   providers: [
-    { provide: 'cspMetaSelector', useValue: 'meta[http-equiv="Content-Security-Policy"]' },
-    { provide: SharedStylesHost, useClass: CustomDomSharedStylesHost },
-    CSPManagerService
-  ],
-  imports: [CommonModule]
+    { provide: 'cspMetaSelector', useValue: 'meta[name="CSP-NONCE"]' },
+    { provide: SharedStylesHost, useClass: CustomDomSharedStylesHost }
+  ]
 })
-export class InlineStylesCspModule { }
+export class InlineStylesCspModule {}
+
