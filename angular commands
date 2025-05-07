@@ -1,0 +1,31 @@
+Project Setup & Configuration
+Command	Purpose
+ng new <project-name>	Creates a new Angular project with configuration, structure, and dependencies.
+ng add <package>	Installs and configures a library (e.g., Angular Material, PWA).
+ng config	Gets or sets Angular configuration values.
+
+Serve & Build
+Command	Purpose
+ng serve	Builds and serves the app locally with live-reload.
+ng build	Compiles the app into an output directory (dist/) for deployment.
+ng build --prod	Builds the app in production mode with optimizations.
+
+Generate Code
+Command	Purpose
+ng generate component <name> or ng g c <name>	Generates a new component.
+ng generate service <name> or ng g s <name>	Generates a new service.
+ng generate module <name> or ng g m <name>	Generates a new module.
+ng generate directive <name>	Generates a new directive.
+ng generate pipe <name>	Generates a new pipe.
+ng generate guard <name>	Generates a new route guard.
+
+Testing & Linting
+Command	Purpose
+ng test	Runs unit tests using Karma.
+ng e2e	Runs end-to-end tests using Protractor (or configured framework).
+ng lint	Analyzes and reports coding style issues using the configured linter.
+
+Routing & Modules
+Command	Purpose
+ng generate module <name> --routing	Creates a module with a routing module included.
+ng g c <name> --module app	Adds a component to a specific module.
