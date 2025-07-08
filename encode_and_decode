@@ -1,0 +1,125 @@
+In angular
+________________________________________________
+
+function encodeStringProps(obj) {
+  const encodedObj = {};
+
+  for (const key in obj) {
+    if (!obj.hasOwnProperty(key)) continue;
+
+    const value = obj[key];
+
+    if (typeof value === 'string') {
+      // Choose the encoding method: `btoa` or `encodeURIComponent`
+      encodedObj[key] = encodeURIComponent(value); // or use btoa(value)
+    } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      encodedObj[key] = encodeStringProps(value); // recursive for nested objects
+    } else {
+      encodedObj[key] = value;
+    }
+  }
+
+  return encodedObj;
+}
+
+
+_______________________________________________________________
+
+
+In c#
+_____________________________________________________________
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Reflection;
+
+public static class UrlDecodeHelper
+{
+    /// <summary>
+    /// Recursively URL‑decodes every writable string property
+    /// on the supplied object (including items in collections
+    /// and dictionaries).
+    /// </summary>
+    public static void UrlDecodeStringProperties(object? target)
+    {
+        if (target is null) return;
+
+        // Decode elements in a collection (List, array, etc.)
+        if (target is IEnumerable enumerable && target.GetType() != typeof(string))
+        {
+            foreach (var item in enumerable)
+            {
+                UrlDecodeStringProperties(item);
+            }
+            return; // nothing else to do for the collection wrapper itself
+        }
+
+        var type = target.GetType();
+
+        // Handle Dictionary<,> string keys or values
+        if (type.IsGenericType &&
+            typeof(IDictionary).IsAssignableFrom(type))
+        {
+            dynamic dict = target;
+
+            // Keys
+            if (type.GetGenericArguments()[0] == typeof(string))
+            {
+                var newKeys = new List<(string OldKey, string NewKey)>();
+                foreach (var key in dict.Keys)
+                {
+                    string decodedKey = WebUtility.UrlDecode(key);
+                    if (!decodedKey.Equals(key))
+                        newKeys.Add((key, decodedKey));
+                }
+                foreach (var (oldKey, newKey) in newKeys)
+                {
+                    var value = dict[oldKey];
+                    dict.Remove(oldKey);
+                    dict[newKey] = value;
+                }
+            }
+
+            // Values
+            foreach (var key in dict.Keys.ToList())
+            {
+                var value = dict[key];
+                if (value is string s)
+                {
+                    dict[key] = WebUtility.UrlDecode(s);
+                }
+                else
+                {
+                    UrlDecodeStringProperties(value);
+                }
+            }
+            return;
+        }
+
+        // Decode string properties or recurse into complex properties
+        foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+        {
+            if (!prop.CanRead) continue;
+
+            object? value = prop.GetValue(target);
+
+            // 1) Plain string
+            if (prop.PropertyType == typeof(string) && prop.CanWrite && value is string str)
+            {
+                prop.SetValue(target, WebUtility.UrlDecode(str));
+            }
+            // 2) Something iterable or another complex object
+            else if (!prop.PropertyType.IsPrimitive &&
+                     prop.PropertyType != typeof(string) &&
+                     prop.PropertyType != typeof(decimal) &&
+                     prop.PropertyType != typeof(DateTime) &&
+                     value != null)
+            {
+                UrlDecodeStringProperties(value);
+            }
+        }
+    }
+}
