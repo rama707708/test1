@@ -1,0 +1,63 @@
+<div class="table-container">
+  <header class="table-header">
+    <h1>{{ tableTitle }}</h1>
+    <p class="subtitle">Table opened in new browser window with URL parameters</p>
+  </header>
+
+  <div class="params-info">
+    <div class="params-section" *ngIf="Object.keys(routeParams).length > 0">
+      <h3>Route Parameters:</h3>
+      <div class="param-grid">
+        <div *ngFor="let param of Object.keys(routeParams)" class="param-item">
+          <span class="param-key">{{ param }}:</span>
+          <span class="param-value">{{ routeParams[param] }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="params-section" *ngIf="Object.keys(queryParams).length > 0">
+      <h3>Query Parameters:</h3>
+      <div class="param-grid">
+        <div *ngFor="let param of Object.keys(queryParams)" class="param-item">
+          <span class="param-key">{{ param }}:</span>
+          <span class="param-value">{{ queryParams[param] }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Price</th>
+          <th>Category</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of tableData" [class]="'status-' + item.status.toLowerCase().replace(' ', '-')">
+          <td>{{ item.id }}</td>
+          <td>{{ item.name }}</td>
+          <td>{{ item.description }}</td>
+          <td class="price">${{ item.price }}</td>
+          <td>{{ item.category }}</td>
+          <td>
+            <span class="status-badge" [class]="'status-' + item.status.toLowerCase().replace(' ', '-')">
+              {{ item.status }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="table-footer">
+    <p>Total items: {{ tableData.length }}</p>
+    <p>Current URL: {{ window.location.href }}</p>
+    <button class="btn-close" onclick="window.close()">Close Window</button>
+  </div>
+</div>

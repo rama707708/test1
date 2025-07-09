@@ -1,0 +1,34 @@
+<div class="container">
+  <h1>Angular Table App</h1>
+  <p>Click the buttons below to open tables in new browser windows with URL parameters</p>
+  
+  <div class="button-section">
+    <h2>Open Tables with Route Parameters</h2>
+    <button class="btn btn-primary" (click)="openTableInNewWindow('1', 'Electronics', 'Gadgets')">
+      Open Electronics Table
+    </button>
+    <button class="btn btn-secondary" (click)="openTableInNewWindow('2', 'Books', 'Literature')">
+      Open Books Table
+    </button>
+    <button class="btn btn-success" (click)="openTableInNewWindow('3', 'Clothing', 'Fashion')">
+      Open Clothing Table
+    </button>
+  </div>
+
+  <div class="button-section">
+    <h2>Open Table with Query Parameters</h2>
+    <button class="btn btn-info" (click)="openSimpleTable()">
+      Open Products Table (Query Params)
+    </button>
+  </div>
+
+  <div class="info-section">
+    <h3>How it works:</h3>
+    <ul>
+      <li>Route parameters: <code>/table/:id/:name/:category</code></li>
+      <li>Query parameters: <code>/table?id=1&name=Products&category=Electronics</code></li>
+      <li>Each button opens a new browser window/tab</li>
+      <li>The table component receives and displays the parameters</li>
+    </ul>
+  </div>
+</div>
