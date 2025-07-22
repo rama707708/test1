@@ -1,4 +1,12 @@
 $('#your-datepicker-id').datepicker({
+
+     showButtonPanel: true,
+    closeText: 'Close',
+    currentText: 'Today',
+    onClose: function(dateText: string, inst: any) {
+      // Optional: handle closing
+    },
+    
     beforeShow: function(input, inst) {
       setTimeout(() => {
         const $input = $(input);
