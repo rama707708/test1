@@ -80,3 +80,52 @@ export class SessionStorageHelper {
         sessionStorage.clear();
     }
 }
+
+
+-----------------------------------
+ngOnInit(): void {
+  ($('.datepicker') as any).datepicker({
+    dateFormat: 'mm/dd/yy',
+    showButtonPanel: true,       // Show the button panel
+    closeText: 'Close',          // Text for the close button
+    currentText: 'Today',        // Text for the "Today" button
+
+    // When a date is selected
+    onSelect: (dateText: string, inst: any) => {
+      const inputId = inst.input[0].id;
+      if (inputId === 'beginDate') {
+        this.beginDate = dateText;
+      } else if (inputId === 'endDate') {
+        this.endDate = dateText;
+      }
+    },
+
+    // Before showing the datepicker → override Today button
+    beforeShow: (input: any, inst: any) => {
+      setTimeout(() => {
+        // Find the "Today" button
+        const todayButton = $(inst.dpDiv).find('.ui-datepicker-current');
+
+        // Override its click behavior
+        todayButton.off('click').on('click', () => {
+          const today = new Date();
+          const formattedToday = $.datepicker.formatDate('mm/dd/yy', today);
+
+          // Update input value
+          $(input).val(formattedToday);
+
+          // Update Angular variables
+          if (input.id === 'beginDate') {
+            this.beginDate = formattedToday;
+          } else if (input.id === 'endDate') {
+            this.endDate = formattedToday;
+          }
+
+          // Actually set the date in the datepicker + close it
+          $(input).datepicker('setDate', today).datepicker('hide');
+        });
+      }, 0);
+    }
+  });
+}
+    
