@@ -183,5 +183,11 @@ ngOnInit(): void {
     }
   });
 }
+----
+    $('.datepicker').on('change', function () {
+  if (!$(this).val()) {
+    $(this).datepicker('setDate', null);
+  }
+});
 
     
