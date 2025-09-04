@@ -190,4 +190,66 @@ ngOnInit(): void {
   }
 });
 
+
+-------------
+
+    ngOnInit(): void {
+  ($('.datepicker') as any).datepicker({
+    dateFormat: 'mm/dd/yy',
+    showButtonPanel: true,
+    closeText: 'Close',
+    currentText: 'Today',
+
+    onSelect: (dateText: string, inst: any) => {
+      this.ngZone.run(() => {
+        const inputId = inst.input[0].id;
+        if (inputId === 'beginDate') {
+          this.beginDate = dateText;
+        } else if (inputId === 'endDate') {
+          this.endDate = dateText;
+        }
+      });
+    },
+
+    beforeShow: (input: any, inst: any) => {
+      setTimeout(() => {
+        const todayButton = $(inst.dpDiv).find('.ui-datepicker-current');
+
+        todayButton.off('click').on('click', () => {
+          const today = new Date();
+          const formattedToday = $.datepicker.formatDate('mm/dd/yy', today);
+
+          this.ngZone.run(() => {
+            $(input).val(formattedToday);
+
+            if (input.id === 'beginDate') {
+              this.beginDate = formattedToday;
+            } else if (input.id === 'endDate') {
+              this.endDate = formattedToday;
+            }
+          });
+
+          $(input).datepicker('setDate', today).datepicker('hide');
+        });
+      }, 0);
+    }
+  });
+
+  // 👇 Ensure datepicker shows even if value was cleared manually
+  $('.datepicker').on('focus', function () {
+    if (!$(this).val()) {
+      $(this).datepicker('setDate', null);  // reset internal state
+      $(this).datepicker('show');           // force open
+    }
+  });
+
+  // 👇 Also reset when user deletes and leaves the input
+  $('.datepicker').on('change', function () {
+    if (!$(this).val()) {
+      $(this).datepicker('setDate', null);
+    }
+  });
+}
+
+
     
