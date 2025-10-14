@@ -5,30 +5,39 @@ import { Directive, HostListener } from '@angular/core';
 })
 export class UppercaseNoSpaceDirective {
 
-  @HostListener('keydown', ['$event'])
-  handleKeyDown(event: KeyboardEvent) {
-    const { key, target } = event;
-    const input = target as HTMLInputElement;
-    const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'];
+  @HostListener('keypress', ['$event'])
+  onKeyPress(event: KeyboardEvent) {
+    const keyCode = event.keyCode || event.which;
 
-    if (allowedKeys.includes(key)) return;
+    // Allow A-Z (65–90), a-z (97–122), 0–9 (48–57)
+    const isValidChar =
+      (keyCode >= 65 && keyCode <= 90) || // A-Z
+      (keyCode >= 97 && keyCode <= 122) || // a-z
+      (keyCode >= 48 && keyCode <= 57); // 0-9
 
-    if (!/^[a-zA-Z0-9]$/.test(key)) return event.preventDefault(); // block invalid
-    if (/[a-z]/.test(key)) { // lowercase → uppercase
-      const pos = input.selectionStart || 0;
-      input.value = input.value.slice(0, pos) + key.toUpperCase() + input.value.slice(input.selectionEnd || pos);
-      input.setSelectionRange(pos + 1, pos + 1);
+    if (!isValidChar) {
+      event.preventDefault(); // block invalid characters
+      return;
+    }
+
+    // If lowercase a-z → convert to uppercase
+    if (keyCode >= 97 && keyCode <= 122) {
+      const uppercaseChar = String.fromCharCode(keyCode - 32);
+      const target = event.target as HTMLInputElement;
+
+      const start = target.selectionStart || 0;
+      const end = target.selectionEnd || 0;
+
+      // Insert uppercase char manually
+      const newValue =
+        target.value.substring(0, start) + uppercaseChar + target.value.substring(end);
+
+      target.value = newValue;
+
+      // Move cursor to after inserted character
+      target.setSelectionRange(start + 1, start + 1);
+
       event.preventDefault();
     }
-  }
-
-  @HostListener('paste', ['$event'])
-  handlePaste(event: ClipboardEvent) {
-    const input = event.target as HTMLInputElement;
-    const text = (event.clipboardData?.getData('text') || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-    const start = input.selectionStart || 0;
-    input.value = input.value.slice(0, start) + text + input.value.slice(input.selectionEnd || start);
-    input.setSelectionRange(start + text.length, start + text.length);
-    event.preventDefault();
   }
 }
