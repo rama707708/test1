@@ -293,4 +293,47 @@ handleNodeResponse(data: any) {
   this.showSubmit = true;
 }
 
+--------------
+    import { switchMap, debounceTime, distinctUntilChanged, finalize } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+
+private nodeSearch$ = new Subject<any>();
+
+ngOnInit() {
+  this.nodeSearch$
+    .pipe(
+      debounceTime(400),          // ⏳ Wait for user to stop typing
+      distinctUntilChanged(),     // ✅ Only call if value actually changed
+      switchMap(model =>          // 🔥 Cancels previous requests
+        this.editpropertiesService.GetNodeDetailsByNodeName(model)
+          .pipe(finalize(() => this.loaderService.hide()))
+      )
+    )
+    .subscribe((data: any) => {
+        this.handleNodeResponse(data);
+    });
+}
+
+onNodeNameChange(event: Event): void {
+  if (!this.model.nodeName || this.model.nodeName.length < 6) {
+    return;
+  }
+  this.loaderService.show();
+  this.nodeSearch$.next(this.model);
+}
+
+handleNodeResponse(data: any) {
+  if (!data || data.IsValidRequest === false) {
+    this.showInfoDialog(data?.ErrorMessage || 'Invalid node', 'Error');
+    this.resetModel();
+    this.showSubmit = false;
+    return;
+  }
+
+  // ✅ Valid response updates here
+  this.allowEditCountry = data.ShowEditCountry;
+  this.allowEditFunction = data.ShowEditFunction;
+  this.showSubmit = true;
+}
+
     
