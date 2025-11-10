@@ -1,0 +1,36 @@
+Check these fields:
+NodeDescription
+NodeId
+leafNode
+ActiveNode
+ParentNode
+nodeType
+SVPApprover
+IsEmailSent
+IsArchived
+CreationDate
+LastUpdatedDate
+CostCenterName = NodeName
+CostCenter.Description
+CostCenter.InsightCenter
+CostCenter.CostCenterLedger
+BUnit
+NettingCenterLevel
+RelatedCenter
+Bac10dotHierachy
+BACCostCenterDesc
+BACLegalEntity
+Description
+Function
+ManagerId
+NodeLevel
+PrimaryApprover
+RegionCode
+RelateCenter
+SecondaryApprover
+Description
+Finance_Location
+HR_Manager_Emp_Id
+NodeLevel
+org_code
+RelateCenter
