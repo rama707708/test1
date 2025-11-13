@@ -1,0 +1,17 @@
+sortAndStringify(obj: any): string {
+  if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
+    return JSON.stringify(
+      Object.keys(obj)
+        .sort()
+        .reduce((acc, key) => {
+          acc[key] = sortAndStringify(obj[key]);
+          return acc;
+        }, {} as any)
+    );
+  }
+  return JSON.stringify(obj);
+}
+
+isEqual(a: any, b: any): boolean {
+  return sortAndStringify(a) === sortAndStringify(b);
+}
